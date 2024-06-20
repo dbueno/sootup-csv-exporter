@@ -16,9 +16,10 @@ public class Main {
   // private static ConcurrentSet<Type> types;
 
   public static void main(String[] args) throws IOException {
-    Path path = FileSystems.getDefault().getPath(".", "test.apk");
+    Path path = FileSystems.getDefault().getPath(".", "test.jar");
     AnalysisInputLocation inputLocation =
-        new ApkAnalysisInputLocation(path, SourceType.Application);
+        new ArchiveBasedAnalysisInputLocation(path, SourceType.Application);
+    // new ApkAnalysisInputLocation(path, SourceType.Application);
     JavaView view = new JavaView(inputLocation);
 
     File dir = new File("facts");

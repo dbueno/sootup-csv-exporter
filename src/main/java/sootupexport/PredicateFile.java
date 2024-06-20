@@ -12,6 +12,11 @@ enum PredicateFile {
   METHOD("Method"),
   CLASS("Class"),
   FORMAL("FormalParam"),
+  VAR_SIMPLENAME("Var_SimpleName"),
+  VAR_TYPE("Var_Type"),
+  VAR_DECLARING_METHOD("Var_DeclaringMethod"),
+  METHOD_BODY_POSITION("Method_BodyPosition"),
+  ASSIGN_LOCAL("AssignLocal"),
   THIS("ThisVar");
 
   private final String name;

@@ -1,8 +1,12 @@
 package sootupexport;
 
+import static sootupexport.Representation.numberedInstructionId;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import sootup.core.inputlocation.*;
+import sootup.core.jimple.basic.*;
+import sootup.core.jimple.common.stmt.*;
 import sootup.core.model.*;
 import sootup.core.types.*;
 import sootup.java.bytecode.inputlocation.*;
@@ -48,7 +52,8 @@ public class FactGenerator {
       //   methodsWithoutActiveBodies.incrementAndGet();
       // }
 
-      Body b0 = m.getBody();
+      Body b = m.getBody();
+      generate(methodId, m, b, session);
       // try {
       //   if (b0 != null) {
       //     Body b = b0;
@@ -70,9 +75,34 @@ public class FactGenerator {
     }
   }
 
-  private void generate(JavaSootMethod m, Body body, SessionCounter session) {}
+  private void generate(String methodId, JavaSootMethod m, Body body, SessionCounter session) {
+    body.getLocals().stream().forEach(l -> _writer.writeLocal(methodId, l));
+    _writer.writeBodyPosition(methodId, body.getPosition());
+    for (Stmt s : body.getStmts()) {
+      String insn = numberedInstructionId(methodId, Representation.getKind(s), session);
+      InstrInfo ii =
+          new InstrInfo(_writer.methodSig(m, null), insn, session.calcInstructionIndex(s));
 
-  private void generate(JavaSootField fld) {
-    System.out.println(fld.toString());
+      if (s instanceof JAssignStmt) {
+        generate(ii, m, (JAssignStmt) s, session);
+      }
+    }
   }
+
+  private void generate(
+      InstrInfo ii, JavaSootMethod m, JAssignStmt assign, SessionCounter session) {
+    if (assign.getLeftOp() instanceof Local) {
+      generateAssignToLocal(ii, m, assign, session);
+    }
+  }
+
+  private void generateAssignToLocal(
+      InstrInfo ii, JavaSootMethod m, JAssignStmt stmt, SessionCounter session) {
+    Local left = (Local) stmt.getLeftOp();
+    Value right = stmt.getRightOp();
+
+    if (right instanceof Local) _writer.writeAssignLocal(ii, left, (Local) right);
+  }
+
+  private void generate(JavaSootField fld) {}
 }

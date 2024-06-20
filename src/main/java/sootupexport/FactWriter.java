@@ -3,6 +3,7 @@ package sootupexport;
 import static sootupexport.PredicateFile.*;
 
 import sootup.core.inputlocation.*;
+import sootup.core.jimple.basic.*;
 import sootup.core.model.*;
 import sootup.core.signatures.*;
 import sootup.core.types.*;
@@ -43,9 +44,41 @@ public class FactWriter {
     _db.add(THIS, methodId, thisVar, type);
   }
 
+  public void writeLocal(String methodId, Local l) {
+    String var = _rep.local(methodId, l);
+    Type t = l.getType();
+    _db.add(VAR_SIMPLENAME, var, l.getName());
+    _db.add(VAR_TYPE, var, _rep.name(t));
+    writeVarDeclaringMethod(methodId, var);
+  }
+
+  public void writeVarDeclaringMethod(String methodId, String var) {
+    _db.add(VAR_DECLARING_METHOD, var, methodId);
+  }
+
+  public void writeBodyPosition(String methodId, Position p) {
+    _db.add(
+        METHOD_BODY_POSITION,
+        methodId,
+        String.valueOf(p.getFirstLine()),
+        String.valueOf(p.getLastLine()),
+        String.valueOf(p.getFirstCol()),
+        String.valueOf(p.getLastCol()));
+  }
+
   public void writeFormalParam(String methodId, Type paramType, int index) {
     String var = _rep.param(methodId, index);
     _db.add(FORMAL, methodId, var, _rep.name(paramType), String.valueOf(index));
+  }
+
+  public void writeAssignLocal(InstrInfo ii, Local to, Local from) {
+    String methodId = ii.methodId;
+    writeAssignLocal(
+        ii.insn, ii.index, _rep.local(methodId, from), _rep.local(ii.methodId, to), methodId);
+  }
+
+  public void writeAssignLocal(String insn, int index, String to, String from, String methodId) {
+    _db.add(ASSIGN_LOCAL, insn, String.valueOf(index), from, to, methodId);
   }
 
   public String methodSig(JavaSootMethod m, String methodRaw) {
